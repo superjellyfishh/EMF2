@@ -16,17 +16,22 @@ tstat_ar1 = zeros(N,1);
 for i = 1:N
     err = randn(T,1);
     % Compute a time series of stock price p(t) = P(t-1) + e(t)
-    p = zeros(N,1);
+    p = zeros(T,1);
     p(1) = 100; % Starting price of 100
     
     for j = 2:T
         p(j) = p(j-1) + err(j);
     end
-    
+    delta_p = diff(p);
     % Estimate the AR(1) model, Compute the t-stat for beta
-    temp = ar(p,1);
-    beta(i) = temp.A(2); % Why some values of -.99 ??
+    temp = ar((delta_p),1);
+    beta(i) = temp.A(2);
     tstat_ar1(i) = temp.A(2) / temp.Report.Parameters.FreeParCovariance;
+    disp(i)
 end
 
-% plot(sort((1-beta))) % Why 
+% Histogram of the t-stats
+hist(tstat_ar1) % Indeed centered around zero!
+
+% Dickey Fuller test
+
