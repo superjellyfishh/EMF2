@@ -18,14 +18,14 @@ p(1) = 100; % Starting price of 100
 for i = 2:N
     p(i) = p(i-1) + err(i);
 end
-plot(p)
+% plot(p) % good
 
 % Estimate the AR(1) model, Compute the t-stat for beta
 
-ar1mdl = arima(1,0,0);
+ar1mdl = ar(p,1);
 
+tstat_ar1 = ar1mdl.A(2)/ ar1mdl.Report.Parameters.FreeParCovariance
+    % Very high t-stat: highly significant
 
-
-
-
-
+% 
+    
