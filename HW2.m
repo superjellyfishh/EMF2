@@ -5,6 +5,8 @@ DAT = D.data.Sheet1;
 % Converting the dates in matlab readable dates...
 DAT(:,1) = DAT(:,1) + 693960;
 
+% Modification
+
 %% Exercise 2
 
 % Simulate a time series of T error terms
