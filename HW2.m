@@ -18,13 +18,15 @@ for i = 1:N
     % Compute a time series of stock price p(t) = P(t-1) + e(t)
     p = zeros(N,1);
     p(1) = 100; % Starting price of 100
+    
     for j = 2:T
         p(j) = p(j-1) + err(j);
     end
+    
     % Estimate the AR(1) model, Compute the t-stat for beta
     temp = ar(p,1);
-    beta(i) = temp.A(2);
+    beta(i) = temp.A(2); % Why some values of -.99 ??
     tstat_ar1(i) = temp.A(2) / temp.Report.Parameters.FreeParCovariance;
 end
 
-plot(sort(beta))
+% plot(sort((1-beta))) % Why 
