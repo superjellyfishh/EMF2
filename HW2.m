@@ -46,8 +46,7 @@ for i = 2:T
     sum2 = sum2 + (p(i-1))^2;
 end
 t_df = (beta(1)-1)/(sqrt((sum1/sum2)));
-
-
+[H, EDGES] = histcounts(tstat_ar1);
 
 
 
