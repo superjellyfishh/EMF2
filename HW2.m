@@ -32,6 +32,33 @@ end
 
 % Histogram of the t-stats
 hist(tstat_ar1) % Indeed centered around zero!
+% We also observe that there are a lot of cases when
+% we rejet H0 based just on noise.
 
-% Dickey Fuller test
+%% Dickey Fuller test
+sum1 = 0;
+for i = 2:T
+    sum1 = sum1 + (p(i) - beta(1)*p(i-1))^2;
+end
+sigma_est = (1/(T-1))*sum1;
+sum2 = 0;
+for i = 2:T
+    sum2 = sum2 + (p(i-1))^2;
+end
+t_df = (beta(1)-1)/(sqrt((sum1/sum2)));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
