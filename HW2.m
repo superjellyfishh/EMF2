@@ -5,11 +5,11 @@ DAT = D.data.Sheet1;
 % Converting the dates in matlab readable dates...
 DAT(:,1) = DAT(:,1) + 693960;
 
-%% Exercise 2a 
+%% Exercise 2a : T = 360
 
 % Simulate N time series of T error terms
 N = 10000;
-T = 100;
+T = 360;
 beta = zeros(N,1);
 tstat_ar1 = zeros(N,1);
 
@@ -121,7 +121,7 @@ tstat_ar1_D_UK = (LM_D_UK.Coefficients{2,1}-1)/(LM_D_UK.Coefficients{2,2})
 
 %% 2c
 N = 10000;
-T = 100;
+T = 360;
 beta = zeros(N,1);
 tstat_ar1_96 = zeros(N,1);
 
@@ -161,4 +161,157 @@ power1 = sum(tstat_ar1_96 < c1)/length(tstat_ar1_96)
 
 % Plot together the cumulative distribution function of the t-stats under 
 % the null (computed in 2a)and the cumulative distribution function of 
-% the t-stats under the AR(1) process given above. Comment. 
+% the t-stats under the AR(1) process given above. Comment.
+[counts1, bins1] = histcounts(tstat_ar1);
+[counts2, bins2] = histcounts(tstat_ar1_96);
+cdf1 = cumsum(counts1);
+cdf2 = cumsum(counts2);
+plot(cdf1), hold on
+plot(cdf2)
+title("CDF of t-stats")
+legend("AR(1) of 2a","AR(1) of 2c")
+% The t-stats are close to the distribution, when they should be very 
+% shifted to the negative, so the test is .questionnable.
+
+%% 2c: Same case but with T = 100
+N = 10000;
+T = 100;
+beta = zeros(N,1);
+tstat_ar1_T100 = zeros(N,1);
+
+for i = 1:N
+    % Compute a time series of stock price p(t) = 0.96 * P(t-1) + e(t)
+    err = randn(T,1);
+    p = zeros(T,1);
+    for j = 2:T
+        p(j) = 0.96 * p(j-1) + err(j);
+    end
+    % Estimate the AR(1) model, Compute the t-stat for beta
+    X = zeros(T-1,2);
+    X(1:end,1) = p(1:end-1);
+    X(1:end,2) = p(2:end);
+    LM = fitlm(X(:,1),X(:,2));
+    beta(i) = LM.Coefficients{2,1};
+    tstat_ar1_T100(i) = (LM.Coefficients{2,1}-1)/(LM.Coefficients{2,2});
+    
+    disp(i)
+    
+    % std_err = std(p(1:end-1))/sqrt(length(p(1:end-1)));
+    % tstat_ar1_96(i) = (beta - 1)/std_err;
+end
+
+hist(tstat_ar1_T100)
+% Probability of rejecting H0 given that H1 is true:
+% At 10%:
+power10_T100 = sum(tstat_ar1_96 < c10)/length(tstat_ar1_T100)
+
+% At 5%:
+power5_T100 = sum(tstat_ar1_96 < c5)/length(tstat_ar1_T100)
+
+% At 1%:
+power1_T100 = sum(tstat_ar1_96 < c1)/length(tstat_ar1_T100)
+
+% Values of power are pretty low considering that H1 is true..
+
+% Plot together the cumulative distribution function of the t-stats under 
+% the null (computed in 2a)and the cumulative distribution function of 
+% the t-stats under the AR(1) process given above. Comment.
+[counts1, bins1] = histcounts(tstat_ar1);
+[counts2, bins2] = histcounts(tstat_ar1_T100);
+cdf1 = cumsum(counts1);
+cdf2 = cumsum(counts2);
+plot(cdf1), hold on
+plot(cdf2)
+title("CDF of t-stats")
+legend("AR(1) of 2a","AR(1) of 2c when T = 100")
+
+
+%% 2c: Same case but with AR(1) : p(t) = 0.8*p(t-1) + err
+N = 10000;
+T = 360;
+beta = zeros(N,1);
+tstat_ar1_80 = zeros(N,1);
+
+for i = 1:N
+    % Compute a time series of stock price p(t) = 0.80 * P(t-1) + e(t)
+    err = randn(T,1);
+    p = zeros(T,1);
+    for j = 2:T
+        p(j) = 0.80 * p(j-1) + err(j);
+    end
+    % Estimate the AR(1) model, Compute the t-stat for beta
+    X = zeros(T-1,2);
+    X(1:end,1) = p(1:end-1);
+    X(1:end,2) = p(2:end);
+    LM = fitlm(X(:,1),X(:,2));
+    beta(i) = LM.Coefficients{2,1};
+    tstat_ar1_80(i) = (LM.Coefficients{2,1}-1)/(LM.Coefficients{2,2});
+    
+    disp(i)
+end
+
+hist(tstat_ar1_80)
+% Probability of rejecting H0 given that H1 is true:
+% At 10%:
+power10_3 = sum(tstat_ar1_80 < c10)/length(tstat_ar1_80)
+
+% At 5%:
+power5_3 = sum(tstat_ar1_80 < c5)/length(tstat_ar1_80)
+
+% At 1%:
+power1_3 = sum(tstat_ar1_80 < c1)/length(tstat_ar1_80)
+
+% Values of power are much better
+
+[counts1, bins1] = histcounts(tstat_ar1);
+[counts2, bins2] = histcounts(tstat_ar1_80);
+cdf1 = cumsum(counts1);
+cdf2 = cumsum(counts2);
+plot(cdf1), hold on
+plot(cdf2)
+title("CDF of t-stats")
+legend("AR(1) of 2a","AR(1) of 2c (case when phi(1) = 0.8)")
+
+% Seems to be better when the AR(1) process is further away from 1
+
+%% Exercise 3a
+T = 100;
+N = 1000;
+beta_3a = zeros(N,1);
+tstat_3a = zeros(N,1);
+tstat_ar1_z = zeros(N,1);
+z = zeros(N,1);
+
+for i = 1:N
+    err = randn(T,2);
+
+    p = zeros(T,1);
+    d = zeros(T,1);
+    for j = 2:T
+        p(j) = p(j-1) + err(j,1);
+        d(j) = d(j-1) + err(j,2);
+    end
+    X = zeros(T,2);
+    X(1:end,1) = p(1:end);
+    X(1:end,2) = d(1:end);
+    LM_3a3 = fitlm(X(:,1),X(:,2));
+    z = LM_3a3.Residuals(:,1);
+    
+    Xz = zeros(T-1,2);
+    Xz(:,1) = z(1:end-1);
+    Xz(1:end,2) = z(2:end);
+    LM_z = fitlm(X(:,1),X(:,2));
+    tstat_ar1_z(i) = (LM_z.Coefficients{2,1})/(LM_z.Coefficients{2,2});
+    disp(i)
+end
+hist(tstat_ar1_z)
+t_sorted = sort(tstat_ar1_z);
+
+% 10%
+c10z = t_sorted(N/10)
+
+% 5%
+c5z = t_sorted(N/20)
+
+% 1%
+c1z = t_sorted(N/100)
