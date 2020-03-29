@@ -295,13 +295,13 @@ for i = 1:N
     X(1:end,1) = p(1:end);
     X(1:end,2) = d(1:end);
     LM_3a3 = fitlm(X(:,1),X(:,2));
-    z = LM_3a3.Residuals(:,1);
+    z = LM_3a3.Residuals{:,1};
     
     Xz = zeros(T-1,2);
     Xz(:,1) = z(1:end-1);
     Xz(1:end,2) = z(2:end);
     LM_z = fitlm(X(:,1),X(:,2));
-    tstat_ar1_z(i) = (LM_z.Coefficients{2,1})/(LM_z.Coefficients{2,2});
+    tstat_ar1_z(i) = (LM_z.Coefficients{2,1} - 1)/(LM_z.Coefficients{2,2});
     disp(i)
 end
 hist(tstat_ar1_z)
@@ -315,3 +315,4 @@ c5z = t_sorted(N/20)
 
 % 1%
 c1z = t_sorted(N/100)
+
