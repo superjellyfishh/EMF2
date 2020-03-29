@@ -276,7 +276,7 @@ legend("AR(1) of 2a","AR(1) of 2c (case when phi(1) = 0.8)")
 
 %% Exercise 3a
 T = 100;
-N = 1000;
+N = 10000;
 beta_3a = zeros(N,1);
 tstat_3a = zeros(N,1);
 tstat_ar1_z = zeros(N,1);
@@ -300,7 +300,7 @@ for i = 1:N
     Xz = zeros(T-1,2);
     Xz(:,1) = z(1:end-1);
     Xz(1:end,2) = z(2:end);
-    LM_z = fitlm(X(:,1),X(:,2));
+    LM_z = fitlm(Xz(:,1),Xz(:,2));
     tstat_ar1_z(i) = (LM_z.Coefficients{2,1} - 1)/(LM_z.Coefficients{2,2});
     disp(i)
 end
@@ -316,3 +316,4 @@ c5z = t_sorted(N/20)
 % 1%
 c1z = t_sorted(N/100)
 
+% Good Values when T = 100
