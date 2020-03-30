@@ -275,7 +275,7 @@ legend("AR(1) of 2a","AR(1) of 2c (case when phi(1) = 0.8)")
 % Seems to be better when the AR(1) process is further away from 1
 
 %% Exercise 3a
-T = 100;
+T = 360;
 N = 10000;
 beta_3a = zeros(N,1);
 tstat_3a = zeros(N,1);
@@ -316,4 +316,51 @@ c5z = t_sorted(N/20)
 % 1%
 c1z = t_sorted(N/100)
 
-% Good Values when T = 100
+% Sames values!
+
+%% Exercise 3b
+% Estimate the regression for the US and UK markets:
+% p(t) = a + b*d(t) + z(t)
+T = length(DAT(:,2));
+% But first we need to convert the dividend yield into dividend payments D:
+Div_Pay_US = (DAT(:,2) .* (DAT(:,3))/100) / 12;
+Div_Pay_UK = (DAT(:,4) .* (DAT(:,5))/100) / 12;
+
+% For the US Market:
+LM_US = fitlm(log(DAT(:,2)),log(Div_Pay_US))
+
+% Dickey-Fuller test for z in the US:
+z = LM_US.Residuals{:,1};
+Xz = zeros(T-1,2);
+Xz(:,1) = z(1:end-1);
+Xz(1:end,2) = z(2:end);
+LM_z = fitlm(Xz(:,1),Xz(:,2));
+tstat_ar1_zUS = (LM_z.Coefficients{2,1} - 1)/(LM_z.Coefficients{2,2});
+% T-stat = -1.7476
+
+% For the UK Market:
+LM_UK = fitlm(log(DAT(:,4)),log(Div_Pay_UK))
+
+% Dickey-Fuller test for z in the US:
+z = LM_UK.Residuals{:,1};
+Xz = zeros(T-1,2);
+Xz(:,1) = z(1:end-1);
+Xz(1:end,2) = z(2:end);
+LM_z = fitlm(Xz(:,1),Xz(:,2));
+tstat_ar1_zUK = (LM_z.Coefficients{2,1} - 1)/(LM_z.Coefficients{2,2});
+% T-stat = -1.836
+
+% Comment your results and conclude on the cointegration/non- 
+% cointegration between the stock price and dividend processes. 
+% Looking at the values of the parameter estimates (a and b), give
+% your conclusion about the DDM.
+
+%% 3c. Error-correcting model for UK
+
+delta_p = diff(log(DAT(:,4)));
+delta_pt1 = delta_p(2:end);
+delta_dt1 = diff(log(Div_Pay_UK));
+zt1 = z(2:end);
+Y = [delta_pt1 delta_dt1(2:end) zt1(2:end)];
+
+LM_err_UK = fitlm(delta_p(2:end),Y) % Doesn't work................
