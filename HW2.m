@@ -10,6 +10,7 @@ DAT(:,1) = DAT(:,1) + 693960;
 % Simulate N time series of T error terms
 N = 10000;
 T = 360;
+% T = 100 for the last point
 beta = zeros(N,1);
 tstat_ar1 = zeros(N,1);
 
@@ -26,7 +27,7 @@ for i = 1:N
     alpha = 0;
     % Estimate the AR(1) model, Compute the t-stat for beta
     X = zeros(T-1,2);
-    X(1:end,1) = p(1:end-1);
+    X(1:end,1) = delta_p;
     X(1:end,2) = p(2:end);
     LM = fitlm(X(:,1),X(:,2));
     beta(i) = LM.Coefficients{2,1};
@@ -56,11 +57,10 @@ end
 %tstat_ar1 = (beta - 1)/std(beta);
 
 % Histogram of the t-stats
-hist(tstat_ar1,30) % NOT centered around zero!
-% We also observe that there are a lot of cases when
-% we rejet H0 based just on noise.
+histogram(tstat_ar1,30,'FaceColor',[0 0.4470 0.7410]) % NOT centered around zero!
+title("t-stats of beta in (2.2)")
 
-%% Dickey Fuller critical values
+% Dickey Fuller critical values
 t_sorted = sort(tstat_ar1);
 
 % 10%
@@ -78,46 +78,48 @@ c1 = t_sorted(N/100)
 % For US Stock Market:
 T = size(DAT,1);
 X = zeros(T-1,2);
-X(1:end,1) = DAT(1:end-1,2);
+X(1:end,1) = diff(log(DAT(:,2)));
 X(1:end,2) = DAT(2:end,2);
 LM_US = fitlm(X(:,1),X(:,2))
 beta = LM_US.Coefficients{2,1};
-tstat_ar1_US = (LM_US.Coefficients{2,1}-1)/(LM_US.Coefficients{2,2}) 
+tstat_ar1_US = (LM_US.Coefficients{2,1})/(LM_US.Coefficients{2,2}) 
 % Can't reject : the prices of stocks in the US are difference stationary
 % (DS)
 
 % For UK Stock Market
 T = size(DAT,1);
 X = zeros(T-1,2);
-X(1:end,1) = DAT(1:end-1,4);
+X(1:end,1) =  diff(log(DAT(:,4)));
 X(1:end,2) = DAT(2:end,4);
 LM_UK = fitlm(X(:,1),X(:,2))
 beta = LM_UK.Coefficients{2,1};
-tstat_ar1_UK = (LM_UK.Coefficients{2,1}-1)/(LM_UK.Coefficients{2,2}) 
+tstat_ar1_UK = (LM_UK.Coefficients{2,1})/(LM_UK.Coefficients{2,2}) 
 % Can't reject : the prices of stocks in the US are difference stationary
 % (DS)
+
+% We need to convert the dividend yield into dividend payments D:
+Div_Pay_US = (DAT(:,2) .* (DAT(:,3))/100) / 12;
+Div_Pay_UK = (DAT(:,4) .* (DAT(:,5))/100) / 12;
 
 % For US Dividend Process
 T = size(DAT,1);
 X = zeros(T-1,2);
-X(1:end,1) = DAT(1:end-1,3);
-X(1:end,2) = DAT(2:end,3);
+X(1:end,1) = Div_Pay_US(2:end);
+X(1:end,2) = Div_Pay_US(1:end-1);
 LM_D_US = fitlm(X(:,1),X(:,2))
 beta = LM_D_US.Coefficients{2,1};
-tstat_ar1_D_US = (LM_D_US.Coefficients{2,1}-1)/(LM_D_US.Coefficients{2,2})
-% We can reject H0 at 10% confidence
+tstat_ar1_D_US = (LM_D_US.Coefficients{2,1} - 1)/(LM_D_US.Coefficients{2,2})
+% We reject H0 -> not stationary
 
 % For UK Dividend Process
 T = size(DAT,1);
 X = zeros(T-1,2);
-X(1:end,1) = DAT(1:end-1,5);
-X(1:end,2) = DAT(2:end,5);
+X(1:end,1) = Div_Pay_UK(2:end);
+X(1:end,2) = Div_Pay_UK(1:end-1);
 LM_D_UK = fitlm(X(:,1),X(:,2))
 beta = LM_D_UK.Coefficients{2,1};
-tstat_ar1_D_UK = (LM_D_UK.Coefficients{2,1}-1)/(LM_D_UK.Coefficients{2,2})
-% We can reject H0 at 10% confidence (was close)
+tstat_ar1_D_UK = (LM_D_UK.Coefficients{2,1} - 1)/(LM_D_UK.Coefficients{2,2})
 
-% -> Dividend processes could be stationary in levels
 
 %% 2c
 N = 10000;
@@ -132,21 +134,19 @@ for i = 1:N
     for j = 2:T
         p(j) = 0.96 * p(j-1) + err(j);
     end
-    % Estimate the AR(1) model, Compute the t-stat for beta
+    % Es timate the AR(1) model, Compute the t-stat for beta
     X = zeros(T-1,2);
     X(1:end,1) = p(1:end-1);
     X(1:end,2) = p(2:end);
     LM = fitlm(X(:,1),X(:,2));
     beta(i) = LM.Coefficients{2,1};
-    tstat_ar1_96(i) = (LM.Coefficients{2,1}-1)/(LM.Coefficients{2,2});
+    tstat_ar1_96(i) = (LM.Coefficients{2,1} - 1)/(LM.Coefficients{2,2});
     
     disp(i)
-    
-    % std_err = std(p(1:end-1))/sqrt(length(p(1:end-1)));
-    % tstat_ar1_96(i) = (beta - 1)/std_err;
 end
 
-hist(tstat_ar1_96)
+histogram(tstat_ar1_96, 'FaceColor',[0 0.4470 0.7410])
+title('Distribution of t-stats of beta of (2.5)')
 % Probability of rejecting H0 given that H1 is true:
 % At 10%:
 power10 = sum(tstat_ar1_96 < c10)/length(tstat_ar1_96)
@@ -253,13 +253,13 @@ end
 hist(tstat_ar1_80)
 % Probability of rejecting H0 given that H1 is true:
 % At 10%:
-power10_3 = sum(tstat_ar1_80 < c10)/length(tstat_ar1_80)
+power10_80 = sum(tstat_ar1_80 < c10)/length(tstat_ar1_80)
 
 % At 5%:
-power5_3 = sum(tstat_ar1_80 < c5)/length(tstat_ar1_80)
+power5_80 = sum(tstat_ar1_80 < c5)/length(tstat_ar1_80)
 
 % At 1%:
-power1_3 = sum(tstat_ar1_80 < c1)/length(tstat_ar1_80)
+power1_80 = sum(tstat_ar1_80 < c1)/length(tstat_ar1_80)
 
 % Values of power are much better
 
