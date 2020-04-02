@@ -395,9 +395,13 @@ UKz = UKzTemp.Residuals{:,1};
 
 delta_UKp = diff(UKp);
 delta_UKd = diff(UKd);
-X = [delta_UKp(1:(end-1),:), delta_UKd(1:(end-1),:), UKz(2:(end-1),:)];
-y_1 = delta_UKp(2:end,:);
-y_2 = delta_UKd(2:end,:);
+X = [delta_UKp(2:end), delta_UKd(2:end), UKz(3:end)];
+% Marceau : X = [delta_UKp(1:(end-1),:), delta_UKd(1:(end-1),:), UKz(2:(end-1),:)];
+% X = [delta_UKp(1:(end-1),:), delta_UKd(1:(end-1),:), UKz(2:(end-1),:)];
+% y_1 = delta_UKp(2:end,:);
+% y_2 = delta_UKd(2:end,:);
+y_1 = delta_UKp(1:end-1);
+y_2 = delta_UKd(1:end-1);
 
 pUK = fitlm(X, y_1);
 dUK = fitlm(X, y_2);
