@@ -356,11 +356,22 @@ tstat_ar1_zUK = (LM_z.Coefficients{2,1} - 1)/(LM_z.Coefficients{2,2});
 % your conclusion about the DDM.
 
 %% 3c. Error-correcting model for UK
+UKp = log(DAT(:,4));
+UKd = log((DAT(:,4).*(DAT(:,5))/100)/12);
+UKzTemp = fitlm(UKd, UKp);
+UKz = UKzTemp.Residuals{:,1};
 
-delta_p = diff(log(DAT(:,4)));
-delta_pt1 = delta_p(2:end);
-delta_dt1 = diff(log(Div_Pay_UK));
-zt1 = z(2:end);
-Y = [delta_pt1 delta_dt1(2:end) zt1(2:end)];
+delta_UKp = diff(UKp);
+delta_UKd = diff(UKd);
+X = [delta_UKp(1:(end-1),:), delta_UKd(1:(end-1),:), UKz(2:(end-1),:)];
+y_1 = delta_UKp(2:end,:);
+y_2 = delta_UKd(2:end,:);
 
-LM_err_UK = fitlm(delta_p(2:end),Y) % Doesn't work................
+pUK = fitlm(X, y_1);
+dUK = fitlm(X, y_2);
+
+VECMp = pUK.Coefficients;
+VECMp.Properties.RowNames = {'\mu_1','\varphi_{11}','\varphi_{12}','\gamma_1'};
+VECMd = dUK.Coefficients;
+VECMd.Properties.RowNames = {'\mu_2','\varphi_{21}','\varphi_{22}','\gamma_2'};
+VECM = [VECMp;VECMd]
